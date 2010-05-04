@@ -71,33 +71,34 @@ edgesFrom u = filter ((u==) . fst . fst) edges
 vs x | x < 10    = "0" ++ show x
      | otherwise = show x
 
-flow (u, v) = "f" ++ vs u ++ vs v
+flow u v = "f" ++ vs u ++ vs v
 
 vertices = concatMap (\v -> map ((,)v) [0..35]) [0..35]
 
 objfun = intercalate " + " $ map f edges
     where f ((u, v), w) = show w ++ " f" ++ vs u ++ vs v
 
-bounds = map (cap . fst) edges
-    where cap (u, v) = flow (u, v) ++ " <= 1"
+bounds =    map (cap . fst) edges
+         ++ nonneg
+    where cap (u, v) = flow u v ++ " <= 1"
+          nonneg     = map (\(u, v) -> flow u v ++ " >= 0") $ map fst edges
           
 constraints =    map flowc [1..34]
               ++ [mflow]
-              ++ nonneg
               ++ cap
-    where flowc u =    intercalate " + " (map (\v -> flow (u, v)) [1..34])
+    where flowc u =    intercalate " + " (map (flow u . snd . fst) $ edgesFrom u)
                     ++ " - "
-                    ++ intercalate " - " (map (\v -> flow (v, u)) [1..34])
+                    ++ intercalate " - " (map (flip flow u . fst . fst) $ edgesTo u)
                     ++ " = 0"
           mflow   = outflow ++ " - " ++ inflow ++ " = 2"
           outflow = intercalate " + " $ map (\v -> "f" ++ vs 0 ++ vs v) $ map (snd . fst)  $ edgesFrom 0
           inflow  = intercalate " - " $ map (\v -> "f" ++ vs v ++ vs 0) $ map (fst . fst) $ edgesTo 0
-          nonneg  = map (\(u, v) -> flow (u, v) ++ " >= 0") $ map fst edges
-          cap     = map (\(u, v) -> flow (u, v) ++ " + " ++ flow (v, u) ++ " <= 1") $ map fst edges
+          cap     = map (\(u, v) -> flow u v ++ " + " ++ flow v u ++ " <= 1") $ map fst edges
 
 prob =    "Maximize\n obj: " ++ objfun
        ++ "\nSubject To\n" ++ unlines (zipWith pr constraints [1..])
        ++ "Bounds\n" ++ unlines (map (" "++) bounds)
+       ++ "Integer\n" ++ unlines (map (" "++) $ map (uncurry flow . fst) edges)
        ++ "End\n"
     where pr con i = " c" ++ show i ++ ": " ++ con
 
