@@ -1,7 +1,7 @@
 -- % ghc --make copenhagenGraph.hs
 
 import Data.List
-import qualified Data.Map as M
+import System.Environment
 
 edges = concatMap f $
         [(( 0, 1), 2),
@@ -73,33 +73,34 @@ vs x | x < 10    = "0" ++ show x
 
 flow u v = "f" ++ vs u ++ vs v
 
-vertices = concatMap (\v -> map ((,)v) [0..35]) [0..35]
-
 objfun = intercalate " + " $ map f edges
-    where f ((u, v), w) = show w ++ " f" ++ vs u ++ vs v
+    where f ((u, v), w) = show w ++ " " ++ flow u v
 
 bounds =    map (cap . fst) edges
-         ++ nonneg
+         ++ map nonneg edges
     where cap (u, v) = flow u v ++ " <= 1"
-          nonneg     = map (\(u, v) -> flow u v ++ " >= 0") $ map fst edges
+          nonneg     = (++" >= 0") . uncurry flow . fst
           
-constraints =    map flowc [1..34]
-              ++ [mflow]
-              ++ cap
+constraints d =    map cap edges
+                ++ map flowc [1..34]
+                ++ [outflow ++ " - " ++ inflow ++ " = " ++ show d]
     where flowc u =    intercalate " + " (map (flow u . snd . fst) $ edgesFrom u)
                     ++ " - "
                     ++ intercalate " - " (map (flip flow u . fst . fst) $ edgesTo u)
                     ++ " = 0"
-          mflow   = outflow ++ " - " ++ inflow ++ " = 2"
-          outflow = intercalate " + " $ map (\v -> "f" ++ vs 0 ++ vs v) $ map (snd . fst)  $ edgesFrom 0
-          inflow  = intercalate " - " $ map (\v -> "f" ++ vs v ++ vs 0) $ map (fst . fst) $ edgesTo 0
-          cap     = map (\(u, v) -> flow u v ++ " + " ++ flow v u ++ " <= 1") $ map fst edges
+          outflow         = intercalate " + " $ map (flow 0 . snd . fst) $ edgesFrom 0
+          inflow          = intercalate " - " $ map (flip flow 0 . fst . fst) $ edgesTo 0
+          cap ((u, v), _) = flow u v ++ " + " ++ flow v u ++ " <= 1"
 
-prob =    "Maximize\n obj: " ++ objfun
-       ++ "\nSubject To\n" ++ unlines (zipWith pr constraints [1..])
-       ++ "Bounds\n" ++ unlines (map (" "++) bounds)
-       ++ "Integer\n" ++ unlines (map (" "++) $ map (uncurry flow . fst) edges)
-       ++ "End\n"
+prob d =    "Maximize\n obj: " ++ objfun ++ "\n"
+         ++ "Subject To\n" ++ unlines (zipWith pr (constraints d) [1..])
+         ++ "Bounds\n" ++ unlines (indent bounds)
+         ++ "Integer\n" ++ unlines (indent $ map (uncurry flow . fst) edges)
+         ++ "End\n"
     where pr con i = " c" ++ show i ++ ": " ++ con
+          indent   = map (" "++)
 
-main = putStr prob
+main = do args <- getArgs
+          case args of
+            [d] -> putStr (prob (read d :: Int))
+            _   -> putStr $ prob 2
