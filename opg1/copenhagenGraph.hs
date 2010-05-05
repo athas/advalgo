@@ -73,34 +73,56 @@ vs x | x < 10    = "0" ++ show x
 
 flow u v = "f" ++ vs u ++ vs v
 
-objfun = intercalate " + " $ map f edges
-    where f ((u, v), w) = show w ++ " " ++ flow u v
+pluses = intercalate " + "
+minuses = intercalate " - "
+pr con i = " c" ++ show i ++ ": " ++ con
+indent   = map (" "++)
 
-bounds =    map (cap . fst) edges
-         ++ map nonneg edges
-    where cap (u, v) = flow u v ++ " <= 1"
-          nonneg     = (++" >= 0") . uncurry flow . fst
-          
-constraints d =    map cap edges
-                ++ map flowc [1..34]
-                ++ [outflow ++ " - " ++ inflow ++ " = " ++ show d]
-    where flowc u =    intercalate " + " (map (flow u . snd . fst) $ edgesFrom u)
-                    ++ " - "
-                    ++ intercalate " - " (map (flip flow u . fst . fst) $ edgesTo u)
-                    ++ " = 0"
-          outflow         = intercalate " + " $ map (flow 0 . snd . fst) $ edgesFrom 0
-          inflow          = intercalate " - " $ map (flip flow 0 . fst . fst) $ edgesTo 0
-          cap ((u, v), _) = flow u v ++ " + " ++ flow v u ++ " <= 1"
+maxint d =    "Maximize\n obj: " ++ objfun ++ "\n"
+           ++ "Subject To\n" ++ unlines (zipWith pr (constraints d) [1..])
+           ++ "Bounds\n" ++ unlines (indent bounds)
+           ++ "Integer\n" ++ unlines (indent $ map (uncurry flow . fst) edges)
+           ++ "End\n"
+    where objfun = intercalate " + " $ map f edges
+              where f ((u, v), w) = show w ++ " " ++ flow u v
+          bounds =    map (cap . fst) edges
+                   ++ map nonneg edges
+              where cap (u, v) = flow u v ++ " <= 1"
+                    nonneg     = (++" >= 0") . uncurry flow . fst
+          constraints d =    map cap edges
+                          ++ map flowc [1..34]
+                          ++ [outflow ++ " - " ++ inflow ++ " = " ++ show d]
+              where flowc u =    pluses (map (flow u . snd . fst) $ edgesFrom u)
+                              ++ " - "
+                              ++ minuses (map (flip flow u . fst . fst) $ edgesTo u)
+                              ++ " = 0"
+                    outflow         = pluses $ map (flow 0 . snd . fst) $ edgesFrom 0
+                    inflow          = minuses $ map (flip flow 0 . fst . fst) $ edgesTo 0
+                    cap ((u, v), _) = flow u v ++ " + " ++ flow v u ++ " <= 1"
 
-prob d =    "Maximize\n obj: " ++ objfun ++ "\n"
-         ++ "Subject To\n" ++ unlines (zipWith pr (constraints d) [1..])
-         ++ "Bounds\n" ++ unlines (indent bounds)
-         ++ "Integer\n" ++ unlines (indent $ map (uncurry flow . fst) edges)
-         ++ "End\n"
-    where pr con i = " c" ++ show i ++ ": " ++ con
-          indent   = map (" "++)
+maxpaths =    "Maximize\n obj: " ++ objfun ++ "\n"
+           ++ "Subject To\n" ++ unlines (zipWith pr constraints [1..])
+           ++ "Bounds\n" ++ unlines (indent bounds)
+           ++ "Integer\n" ++ unlines (indent $ map (uncurry flow . fst) edges)
+           ++ "End\n"
+    where objfun = outflow ++ " - " ++ inflow
+              where outflow = pluses  $ map (flow 0 . snd . fst) $ edgesFrom 0
+                    inflow  = minuses $ map (flip flow 0 . fst . fst) $ edgesTo 0
+          constraints =    map cap edges
+                        ++ map flowc [1..34]
+              where flowc u =    pluses (map (flow u . snd . fst) $ edgesFrom u)
+                              ++ " - "
+                              ++ minuses (map (flip flow u . fst . fst) $ edgesTo u)
+                              ++ " = 0"
+                    cap ((u, v), _) = flow u v ++ "<= 1"
+          bounds =    map (cap . fst) edges
+                   ++ map nonneg edges
+              where cap (u, v) = flow u v ++ " <= 1"
+                    nonneg     = (++" >= 0") . uncurry flow . fst
 
 main = do args <- getArgs
           case args of
-            [d] -> putStr (prob (read d :: Int))
-            _   -> putStr $ prob 2
+            ["maxint", d] -> putStr (maxint (read d :: Int))
+            "maxint":_    -> putStr $ maxint 2
+            ["maxpaths"]  -> putStr maxpaths
+            _             -> error "usage: copenhagenGraph <maxint [d]|maxpaths>"
