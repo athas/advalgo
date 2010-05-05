@@ -1,0 +1,120 @@
+\documentclass[a4paper, oneside, final]{memoir}
+\usepackage{amsmath}
+\begin{document}
+\title{Max-Flow/Linear programming}
+\author{Troels\\Ronni\\Jakob}
+\maketitle
+
+\setcounter{chapter}{1}
+
+\section{\textit{Show how this problem can be solved using max-flow
+    and briefly argue that your method works}}
+
+(We interpret \textit{do not share a single edge} as \textit{do not
+  share one or more edges}.)
+
+The problem can be solved by assigning capacity $1$ to each edge in
+the planar graph, then using any max-flow algorithm.  In model terms,
+each edge can thus only be part of a single unique bike path, each
+path will carry a flow of size $1$, and the maximum flow of the entire
+network will thus be equal to the number of of different paths.
+
+\section{\textit{Could he still solve the problem using max-flow, and
+    if so how?}}
+
+Vertex capacities can be assigned by splitting each vertex $v$ into
+two vertices $v_1, v_2$ and joining them by an edge $e$ of the
+capacity we wish the vertex to have, thus reducing the problem to the
+earlier one of vertex disjointness.  By assigning each vertex in the
+graph the capacity $1$, we require that all paths through the flow are
+vertex-disjoint.
+
+\section{\textit{Assuming there are n vertices and m edges in the
+    Copenhagen graph, how fast could Carl solve this problem
+    (asymptotic running-time)?}}
+
+The Ford-Fulkerson algorithm has a worst-case asymptotic running time
+of $O(E|f^\star|)$.  As all vertices and edges have capacity $1$,
+$|f^\star|$ is bounded above by $E$.  Hence, the run-time complexity
+is $O(m^2)$.  However, $|f^\star|$ is also bounded above by $\kappa$,
+the vertex connectivity of the graph, and the complexity can thus be
+reduced further to $O(m\kappa)$.  $\kappa$ is $O(n)$, so the
+complexity will be $O(n m)$.  In practice, $\kappa$ will usually be
+much smaller than $n$.
+
+In comparison, the Edmunds-Karp algorithm runs in $O(V E^2)$, that is
+$O(n m^2)$ in our case.
+
+\section{\textit{Do you think he could solve it faster using some
+    other method than max-flow?}}
+
+By breadth-first iteration we can find all disjoint paths by removing
+an edge from the graph whenever we move along it.
+
+\section{\textit{Formulate this as a linear program and give a brief
+    description of how you arrived at your solution.}}
+
+\def\Sum{\displaystyle\sum}
+
+From the textbook, we recalled the following linear program for
+solving the \textit{minimum-cost flow} problem:
+
+\begin{tabular}{lrcll}
+  Minimize & $\Sum_{(u,v)\in E}a(u,v)f_{u v}$ &&& \\
+  subject to & $f_{u v}$ & $\leq$ & $c(u,v)$ & for each $u,v \in
+  V$ \\
+  & $\Sum_{v\in V}f_{v u} - \Sum_{v\in V}f_{u v}$ &$=$& $0$ & for
+  each $u\in V-{\{s,t\}}$ \\
+  & $\Sum_{v\in V}f_{s v}-\Sum_{v\in V}f_{v s}$ &$=$& $d$ \\
+  & $f_{u v}$ &$\geq$& $0$ & for each $u, v \in V$ \\
+\end{tabular}
+
+We essentially need to solve a \textit{maximum-cost} problem in which
+$c(u,v)=1$ for all $(u,v)\in E$.  A naive attempt would simply change
+``minimize'' to ``maximize'', but as our graph is not directed, this
+would lead to paths that backtrack in order to double their interest.
+We assume this is not intendedn and thus we change the capacity
+constraint to $f_{u v}+f_{v u} \leq 1$.  This enforces that a path can
+only be traversed once in any direction.  We also require that all
+flows are either $0$ or $1$.  Our final linear program is thus:
+
+\begin{tabular}{lrcll}
+  Maximize & $\Sum_{(u,v)\in E}a(u,v)f_{u v}$ &&& \\
+  subject to & $f_{u v}+f_{v u}$ & $\leq$ & $1$ & for each $u,v \in
+  V$ \\
+  & $\Sum_{v\in V}f_{v u} - \Sum_{v\in V}f_{u v}$ &$=$& $0$ & for
+  each $u\in V-{\{s,t\}}$ \\
+  & $\Sum_{v\in V}f_{s v}-\Sum_{v\in V}f_{v s}$ &$=$& $d$ \\
+  & $f_{u v}$ &$\geq$& $0$ & for each $u, v \in V$ \\
+\end{tabular}
+
+\section{Solve max-edge-independent-paths to optimality using CPLEX}
+
+The max flow through the network is $4$, hence that is also the number
+of edge-independent paths (though there are only $3$
+vertex-independent paths).
+
+\section{Solve d-max-interest-paths to optimality using CPLEX}
+
+\begin{description}
+\item[$d=2:$] $1117$.
+\item[$d=3:$] $1085$.
+\end{description}
+
+\appendix
+
+\chapter{The generator program}
+
+\verbatiminput{copenhagenGraph.hs}
+
+\chapter{CPLEX programs}
+
+\section{Max-edge-independent-paths}
+
+\verbatiminput{maxpaths.lp}
+
+\section{D-max-interest-paths ($d=2$)}
+
+\verbatiminput{algo.lp}
+
+\end{document}
