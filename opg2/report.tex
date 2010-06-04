@@ -1,0 +1,39 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[danish]{babel}
+\usepackage{amsmath}
+\usepackage{ulem}
+\usepackage{palatino}
+\linespread{1.05}
+\title{Advanced Algorithms - Assignment 2}
+\author{Ronni Elken Lindsgaard\\
+Troels Henriksen\\
+Jacob Wejendorp}
+\begin{document}
+\maketitle
+\section{Traveling Couple Problem}
+For $d=0$ is TCP identical to TSP for all input graphs. And for $d > 0$
+will there always be graphs where the minimum vertice distance is
+greater than $d$. In which case the problem is reducable to TSP, which
+is known NP-complete, therefore we cannot say wether TCP is solvable in
+polynomial time.
+\section{Tweak-method}
+\begin{itemize}
+\item The optimal datastructure is an ordered set of vertices.
+Implemented in a programming language it could be either a linked list
+or an indexed array.
+\item $V$ is intialised to the empty set. We then start by choosing an arbitrary vertice $v$ and add it to the set $V$. 
+Afterwards we take another arbitrary vertice not in the set $V$ and not
+within the distance $d$ from a node in $V$. Repeat this until no such nodes are left.
+\item We take two arbitrary edges $(u_1,v_1)$ and $(u_2,v_2)$ and
+replace them with $(u_1,u_2)$ and $(v_1,v_2)$. The switch of directions
+is propagated through the subgraph that connects $v_1$ and $u_2$.
+
+We take a vertice $v$ from the set $V$ and look at all vertices within
+range $d$ of $v$. We then choose an arbitrary vertice $u$ from this set
+and check if it is possible to replace $u$ with $v$ and still have all
+nodes covered.
+
+\end{itemize}
+\end{document}
+
