@@ -20,14 +20,14 @@ greater than $d$, in which case the problem is again equivalent to TSP, which
 is known NP-complete. Therefore we cannot say whether TCP is solvable in
 polynomial time.
 
-\subsection{Data structure}
+\subsection{Data Structure}
 
 A candidate solution is a path through the graph, which we represent
 as an ordered sequence of vertices.  Implemented in a programming
 language it could be either a linked list or an indexed array.  We
 assume that the path need not return to its origin.
 
-\subsection{Initial candidate solution}
+\subsection{Initial Candidate Solution}
 
 $V$ is intialised to the empty set. We then start by choosing an
 arbitrary vertice $v$ and add it to the set $V$.  Afterwards we take
@@ -35,7 +35,7 @@ another arbitrary vertice not in the set $V$ and not within the
 distance $d$ from a node in $V$.  Repeat this until no such nodes are
 left.
 
-\subsection{Mutation operators}
+\subsection{Mutation Operators}
 
 We make use of the following two mutation operators:
 
@@ -50,10 +50,10 @@ We make use of the following two mutation operators:
   and still have all nodes covered.
 \end{itemize}
 
-\subsection{Implementation of hill-climbing}
+\subsection{Implementation of Hill-climbing}
 
 For one hundred runs, the average cost (path length) is
-$26.4827292786505$, and the minimum is $24.4202464069$.
+$26.4827292786505$, a maximum of $29.5869978691$ and a minimum of $24.4202464069$.
 
 \section{Tabu-search}
 We have implemented a Tabu-search, that uses the altered nodes in the tweak procedure,
