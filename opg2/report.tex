@@ -56,26 +56,36 @@ For one hundred runs, the average cost (path length) is
 $26.4827292786505$, and the minimum is $24.4202464069$.
 
 \section{Tabu-search}
-We have implemented a feature-based Tabu-search, that uses the altered nodes in the tweak procedure,
+We have implemented a Tabu-search, that uses the altered nodes in the tweak procedure,
 as its tabu-elements, making tabu any tweak that includes changing such a vertice.
 This requires all tweaks to keep a list of nodes it alters and return it to the algorithm.
 The algorithm then keeps this list, being subject to the length contraint $l$, and discards all tweaks that return
 a node currently in the tabu-list.
 
-The results using Tabu-search are significantly better than Hill-climbing, which is primarily caused by
-tabus more explorative nature, which means it will look at a larger sample, and is more likely to find
-any solution. This, however is not unlike a simple steepest-ascent algorithm, in which the algorithm
-also considers a larger neighborhood than hillclimbing. This shows as the result-difference between a
-tabu-search and steepest-ascent in our case shows little difference in results.
+The results using Tabu-search are slightly better than Hill-climbing,
+which is primarily caused by tabus more explorative nature, which
+means it will look at a larger sample, and is more likely to find any
+solution.  In particular, the tabu search can pass through local
+minima where the hill-climbing algorithm would get stuck.  This,
+however is not unlike a simple steepest-ascent algorithm, in which the
+algorithm also considers a larger neighborhood than hillclimbing. This
+shows as the result-difference between a tabu-search and
+steepest-ascent in our case shows little difference in results.
 
-\section{Best solution}
-We have found a tour of length $23.1677$, using feature-based Tabu-search with a $n=20,l=30$ distribution.\\
-\includegraphics[width=100mm]{solution-2316.png}
+\subsection{Best solution}
+
+Using $n=1000,l=10,d=0.2$, one hundred runs of the tabu search led to
+an average tour length of $23.50254812367763$, a maximum of
+$24.27082059618084$ and a minimum of $22.92649947513128$.
 
 \appendix
 
 \section{Hill-Climbing Implementation}
 
 \verbatiminput{src/florence.py}
+
+\section{Tabu Search Implementation}
+
+\verbatiminput{src/taboo.hs}
 
 \end{document}
