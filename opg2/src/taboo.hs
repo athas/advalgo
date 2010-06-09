@@ -101,5 +101,6 @@ main :: IO ()
 main = do args <- getArgs
           case args of
             [limit, d, l] -> do
-              print =<< cost <$> taboo newStdGen (read l) (read limit) (candidate (read d) points)
+              let start = candidate (read d) points
+              print =<< cost <$> taboo newStdGen (read l) (read limit) start
             _   -> error "usage: taboo limit d l"
