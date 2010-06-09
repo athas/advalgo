@@ -8,6 +8,7 @@ import Data.Ord
 import Data.List
 import qualified Data.Set as S
 
+import System.Environment
 import System.Random
 import "random-shuffle" System.Random.Shuffle
 
@@ -126,25 +127,37 @@ mutators = [swaps]
 mutations :: Solution -> [Solution]
 mutations s = concatMap ($s) mutators
 
+n :: Int
+n = 1000
+
 bestFrom :: RandomGen g => [Solution] -> Solution -> g -> Solution
 bestFrom taboo s g = case sortBy (comparing cost) (take n sols') of
                        []     -> s
                        (s':_) -> s'
   where sols  = [ s' | s' <- mutations s, not (s' `elem` taboo) ]
         sols' = shuffle' sols (length sols) g
-        n     = 200
 
-taboo :: (Monad m, RandomGen g) => m g -> Integer -> Solution -> m Solution
-taboo gm i s = taboo' i [s] s s
-    where taboo' 0 _ best s     = return best
+taboo :: (Functor m, Monad m, RandomGen g) =>
+         m g -> Int -> Integer -> Solution -> m [Solution]
+taboo gm l i s = taboo' i [s] s s
+    where taboo' 0 _ best s     = return [s]
           taboo' i seen best s  = do
             s' <- liftM (bestFrom seen s) gm
             let best' | cost s' < cost best = s'
                       | otherwise           = best
-            taboo' (i-1) (take l $ s' : seen) best' s'
-          l = 10
+            (s:) <$> taboo' (i-1) (take l $ s' : seen) best' s'
 
 start = (candidate 0.2 points)
 
 main :: IO ()
-main = print =<< (cost <$> taboo newStdGen 1000 start)
+main = do args <- getArgs
+          case args of
+            [runs, d, l] -> do
+              res <- taboo newStdGen (read l) (read runs) (candidate (read d) points)
+              case res of
+                (_:_) -> do
+                  let best = minimumBy (comparing cost) res
+                  putStrLn $ "Best: " ++ show (cost best)
+                  putStrLn $ "Average: " ++ show (sum (map cost res) / fromIntegral (length res))
+                _        -> error "no solution"
+            _   -> error "usage: taboo runs d l"

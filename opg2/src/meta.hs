@@ -2,6 +2,8 @@ module Main where
 
 import Data.List
 
+import System.Environment
+
 type Point = (Double, Double)
 
 dist :: Point -> Point -> Double
@@ -120,9 +122,22 @@ mutations s = concatMap ($s) mutators
 better :: Solution -> Maybe Solution
 better s = find ((<cost s) . cost) $ mutations s
 
+allbest :: Integer -> Solution -> [Solution]
+allbest 0 s = [s]
+allbest i s = maybe [s] (\s' -> s : allbest (i-1) s') $ better s
+
 best :: Integer -> Solution -> Solution
 best 0 s = s
 best i s = maybe s (best (i-1)) $ better s
 
 main :: IO ()
-main = print $ cost (best 1000 (candidate 0.0 points))
+main = do args <- getArgs
+          case args of
+            [runs, d] ->
+              let res = reverse $ allbest (read runs) (candidate (read d) points)
+              in case res of
+                   (best:_) -> do
+                     putStrLn $ "Best: " ++ show (cost best)
+                     putStrLn $ "Average: " ++ show (sum (map cost res) / fromIntegral (length res))
+                   _        -> error "no solution"
+            _   -> error "usage: meta runs d"
