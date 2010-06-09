@@ -62,11 +62,14 @@ This requires all tweaks to keep a list of nodes it alters and return it to the 
 The algorithm then keeps this list, being subject to the length contraint $l$, and discards all tweaks that return
 a node currently in the tabu-list.
 
+In essence a direct implementation of "Algorithm 15 Feature-based Tabu Search" from Essentials of Metaheuristics, p 25.\\
+
 The results using Tabu-search are significantly better than Hill-climbing, which is primarily caused by
 tabus more explorative nature, which means it will look at a larger sample, and is more likely to find
 any solution. This, however is not unlike a simple steepest-ascent algorithm, in which the algorithm
 also considers a larger neighborhood than hillclimbing. This shows as the result-difference between a
 tabu-search and steepest-ascent in our case shows little difference in results.
+
 
 \section{Best solution}
 We have found a tour of length $23.1677$, using feature-based Tabu-search with a $n=20,l=30$ distribution.\\
@@ -77,5 +80,10 @@ We have found a tour of length $23.1677$, using feature-based Tabu-search with a
 \section{Hill-Climbing Implementation}
 
 \verbatiminput{src/florence.py}
+
+
+\section{Tabu-search implementation}
+
+\verbatiminput{pyMetaheuristics/Algorithms/TabuSearch.py}
 
 \end{document}

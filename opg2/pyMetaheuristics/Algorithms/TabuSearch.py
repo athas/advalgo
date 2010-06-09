@@ -1,3 +1,6 @@
+#Author: Ronni Elken Lindsgaard
+#Description: Implementation of a feature-based Tabusearch
+
 from MetaAlgorithm import MetaAlgorithm
 import copy
 from random import randint
