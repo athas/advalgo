@@ -5,6 +5,7 @@
 \usepackage{ulem}
 \usepackage{palatino}
 \usepackage{graphicx}
+\usepackage{verbatim}
 \linespread{1.05}
 \title{Advanced Algorithms - Assignment 2}
 \author{Ronni Elken Lindsgaard\and
@@ -70,5 +71,11 @@ tabu-search and steepest-ascent in our case shows little difference in results.
 \section{Best solution}
 We have found a tour of length $23.1677$, using feature-based Tabu-search with a $n=20,l=30$ distribution.\\
 \includegraphics[width=100mm]{solution-2316.png}
+
+\appendix
+
+\section{Hill-Climbing Implementation}
+
+\verbatiminput{src/florence.py}
 
 \end{document}
